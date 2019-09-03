@@ -1,0 +1,113 @@
+{
+  "data": {
+    "channel_id": "189414",
+    "name": "H5",
+    "detail": "",
+    "record_type": 1,
+    "mode": "100",
+    "create_time": "2019-02-21 14:58:11",
+    "start_time": "2019-02-21 14:58:11",
+    "end_time": "2019-02-21 14:59:43",
+    "streams": {
+      "rtmp_push_url": "",
+      "rtmp_play_url": "",
+      "http_play_url": "",
+      "hls_play_url": ""
+    },
+    "logo_pos": 1,
+    "cover_logo": "https://ceshi.imbcloud.cn/uploadFile/1550733073148/7d6ad92092308853b3c8ae0961e6972.png",
+    "live_image": "http://oss.imbcloud.cn/template/common/static/images/cover_live.png",
+    "live_status": -1,
+    "direct_code": "91GOVU",
+    "account_id": "100000",
+    "account_name": "admin",
+    "device_id": "7758415269873954",
+    "device_name": "H5",
+    "ulimit": 200,
+    "countdown_flag": 1,
+    "user_num_flag": 0,
+    "user_num_base": 0,
+    "guide_flag": 1,
+    "guide_image": "https://ceshi.imbcloud.cn/uploadFile/1550733024224/68b027887bdbc54b2b3c349206523cf.png",
+    "wx_mp_flag": 0,
+    "wx_mp_image": "",
+    "wx_mp_name": "",
+    "wx_mp_pop": 0,
+    "download_flag": 0,
+    "wx_share_title": "H5",
+    "wx_share_msg": "",
+    "wx_share_image": "",
+    "chat_allow_flag": 1,
+    "chat_check_flag": 0,
+    "direct_streams": [
+      {
+        "direct_rtmp_id": 1,
+        "direct_rtmp_type": "HDMI",
+        "direct_rtmp_push_url": "rtmp://myqcloud-livepush.imbcloud.cn/live/23576_189414_HDMI_1?bizid=23576&txSecret=d0b88c5847fb10031e09afbf8c4d0d0e&txTime=5C778683",
+        "direct_rtmp_play_url": "rtmp://myqcloud-liveplay.imbcloud.cn/live/23576_189414_HDMI_1"
+      },
+      {
+        "direct_rtmp_id": 2,
+        "direct_rtmp_type": "USB",
+        "direct_rtmp_push_url": "rtmp://myqcloud-livepush.imbcloud.cn/live/23576_189414_USB_2?bizid=23576&txSecret=79fa2ea66cf0fc62609b106d964309d3&txTime=5C778683",
+        "direct_rtmp_play_url": "rtmp://myqcloud-liveplay.imbcloud.cn/live/23576_189414_USB_2"
+      }
+    ],
+    "live_video_id": "",
+    "sub_streams": [
+      {
+        "sub_rtmp_push_url": null,
+        "sub_rtmp_play_url": null,
+        "sub_http_play_url": null,
+        "sub_visit_id": null
+      }
+    ],
+    "online_user_num": 3,
+    "history_user_num": 15,
+    "comment_count": 8,
+    "visit_id": "1550740084733",
+    "visit_name": "5ri45a6iMTU1MDc0MDA4NDczMw==",
+    "headimgurl": "",
+    "result": "success",
+    "reason": "",
+    "date": "1550740115139",
+    "msg": null,
+    "connects": null,
+    "custom_menu": [
+      {
+        "menu_id": 0,
+        "menu_name": "聊天",
+        "menu_type": 2,
+        "menu_detail": ""
+      },
+      {
+        "menu_id": 1,
+        "menu_name": "榜单",
+        "menu_type": 4,
+        "menu_detail": ""
+      },
+      {
+        "menu_id": 2,
+        "menu_name": "图文",
+        "menu_type": 1,
+        "menu_detail": "PHA+PGltZyBzcmM9Ii91ZWRpdG9yL2pzcC91cGxvYWQvaW1hZ2UvMjAxOTAyMjEvMTU1MDczMzYzNzA4ODA1NTk4Ny5wbmciIHRpdGxlPSIxNTUwNzMzNjM3MDg4MDU1OTg3LnBuZyIgYWx0PSI1OGIwOWU4ZTg3NWY0ZjE5ZjBhNzJiZDAxNjg1YjA3LnBuZyIvPjwvcD48cD48YnIvPjwvcD48cD48YnIvPjwvcD48cD48YnIvPjwvcD48cD48YnIvPjwvcD48cD5kZmFzZGZzYWZzYWZkc2HkvYbmmK/lubLmkpLlubLmkpLkuJzojp7luILkuJzojp7luILnmoQ0NTPkurrlkZjlpKnng63nirnlpKrkurrpl67popg8L3A+PHA+PGJyLz48L3A+PHA+PGJyLz48L3A+PHA+PGJyLz48L3A+PHA+PGJyLz48L3A+PHA+PGJyLz48L3A+PHA+cnRld3J0eXJld3l0PC9wPjxwPiZuYnNwOyAmbmJzcDsgJm5ic3A7IOeDreeJueeDreWkqea2rzwvcD48cD48aW1nIHNyYz0iL3VlZGl0b3IvanNwL3VwbG9hZC9pbWFnZS8yMDE5MDIyMS8xNTUwNzMzNzI2MTk5MDkyMjMyLnBuZyIgdGl0bGU9IjE1NTA3MzM3MjYxOTkwOTIyMzIucG5nIiBhbHQ9IjBhNmQ3ZmQ2NTdiYzBkYjc2MTI2ZjIyNDk3ZWNlMzcucG5nIi8+PC9wPg=="
+      },
+      {
+        "menu_id": 3,
+        "menu_name": "大屏互动",
+        "menu_type": 8,
+        "menu_detail": "https://v.alltuu.com/album?id=1011114608&from=timeline&isappinstalled=0"
+      },
+      {
+        "menu_id": 5,
+        "menu_name": "菜单名称",
+        "menu_type": 3,
+        "menu_detail": ""
+      }
+    ],
+    "banner_bar": [
+    ],
+    "special": null
+  },
+  "status": "200"
+}
