@@ -31,7 +31,7 @@
         >
           <div
             @click="off != off"
-            v-show="data.guide_flag === 0 && zhibo === true"
+            v-show="data.guide_flag === 0 && zhibo === true && !speakModal && !wechatModal"
             id="hlsPlay"
             class="video"
           ></div>
@@ -178,7 +178,7 @@
             {{item.menu_name}}
             <!-- {{data.comment_count}} -->
             <span v-if="item.menu_type === 2" class="personNum">
-              <span v-if="data.comment_count === 0">(0)</span>
+              <span v-if="data.comment_count === 0"></span>
               <span
                 v-if="data.comment_count < 100 && data.comment_count >0"
               >({{data.comment_count}})</span>
@@ -264,7 +264,7 @@
                         <div
                           style="font-size: 14px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
                         >{{item.visit_name| decode}}</div>
-                        <!-- <div style="color: #aaa" v-if="!compareDate(item)">{{item.message_time}}</div> -->
+                        <div style="color: #aaa">{{item.message_time | commentTime}}</div>
                         <!-- <div
                           style="color: #aaa"
                           v-if="compareDate(item)"
@@ -414,13 +414,11 @@
               </div>
             </div>
             <!-- 成员 -->
-            <div style="height: 100%; margin: 0 -20px;" v-show="curType === 6">
+            <div style="height: 100%; margin: 0 -20px; overflow: auto;" v-if="curType === 6">
               <div
                 style="display: flex;
                     flex-wrap: wrap;
-                    padding: 10px 20px;
-                    height: 100%;
-                    overflow: auto;"
+                    padding: 10px 20px;"
               >
                 <div style="flex: 0 0 20%; height: 80px;" v-for="item in users" :key="item.id">
                   <div
@@ -557,7 +555,7 @@
               {{item.menu_name}}
               <!-- {{data.comment_count}} -->
               <span v-if="item.menu_type === 2" class="personNum">
-                <span v-if="data.comment_count === 0">(0)</span>
+                <span v-if="data.comment_count === 0"></span>
                 <span
                   v-if="data.comment_count < 100 && data.comment_count >0"
                 >({{data.comment_count}})</span>
@@ -668,7 +666,7 @@
             {{item.menu_name}}
             <!-- {{data.comment_count}} -->
             <span v-if="item.menu_type === 2" class="personNum">
-              <span v-if="data.comment_count === 0">(0)</span>
+              <span v-if="data.comment_count === 0"></span>
               <span
                 v-if="data.comment_count < 100 && data.comment_count >0"
               >({{data.comment_count}})</span>
@@ -863,7 +861,7 @@
     </Modal>-->
 
     <!-- 发言窗口 -->
-    <Modal v-model="speakModal" title="发言" @on-ok="sendComments">
+    <Modal class="speak-modal" v-model="speakModal" title="发言" @on-ok="sendComments">
       <Input v-model="speakContent" type="textarea" placeholder="请输入发言内容"></Input>
     </Modal>
   </div>
@@ -888,8 +886,8 @@ export default {
       pc_right_menu: [], // pc 端左侧聊天和榜单窗口
       keepAliveStatus: false,
       keepAliveDate: '', // 默认时间
-      urlhead: 'https://ceshi.imbcloud.cn',
-      // urlhead:"https://api.imbcloud.cn",
+      // urlhead: 'https://ceshi.imbcloud.cn',
+      urlhead: 'https://api.imbcloud.cn',
       isMobile: true,
       flag: true,
       data: {
@@ -944,6 +942,10 @@ export default {
     decode(value) {
       let realValue = Base64.decode(value)
       return realValue
+    },
+    commentTime(val) {
+      // 聊天时间显示时分
+      return val.substr(11, 5)
     }
   },
   created() {
@@ -988,7 +990,7 @@ export default {
             if (res) {
               this.data.visit_name = res.nickname
               this.data.visit_id = res.unionid
-              this.speakContent = 'ceshishuju'
+              this.speakContent = ''
               this.data.headimgurl = res.headimgurl
               this.data.channel_id = 1
             }
@@ -1003,16 +1005,22 @@ export default {
       )
     ) {
       this.isMobile = true
-      // setTimeout(() => {
-      //   this.wxshare()
-      // }, 1000)
     } else {
       this.isMobile = false
     }
 
-    this.$api('/h5/getData.do?share_type=wx&flag=false').then(res => {
+    this.$api('/h5/getData.do?share_type=wx&flag=true').then(res => {
       if (res) {
+        if (res.wx_mp_pop == 1) {
+          this.wechatModal = true
+        }
         this.data = res
+        // 判断当前在线人数是否超出了最大限制在线人数
+        if (this.data.online_user_num > this.data.ulimit) {
+          alert('当前频道在线已超出人员上限！')
+          this.data = {}
+          return false
+        }
         // 判断是否pc 端， pc 不在tab 显示聊天和榜单
         if (!this.isMobile) {
           let tempArr = []
@@ -1199,6 +1207,7 @@ export default {
             setTimeout(() => {
               var player2 = new TcPlayer('hlsPlay2', {
                 m3u8: this.data.streams.hls_play_url,
+                flv: this.data.streams.http_play_url, //增加了一个 flv 的播放地址，用于PC平台的播放 请替换成实际可用的播放地址
                 // "coverpic": {"style": "cover", "src": self.data.live_image},
                 live: true,
                 width: '100%',
@@ -1229,7 +1238,7 @@ export default {
         this.getReplayLst()
         this.getHistory()
         this.getSpecialChannel()
-        this.getComments()
+        this.getComments() // 不断回调
 
         setInterval(() => {
           this.getRank()
@@ -1254,10 +1263,13 @@ export default {
     },
     loginWx() {
       // 获取当前登录的url, 登录微信
-      // let url = 'https://open.weixin.qq.com/connect/qrconnect?appid=wx4a36e3e1cab43cf6&redirect_uri=' + location.href.split('#')[0] + '&response_type=code&scope=snsapi_login&state=2014#wechat_redirect'
-      // 测试地址
       let url =
-        'https://open.weixin.qq.com/connect/qrconnect?appid=wx4a36e3e1cab43cf6&redirect_uri=https://api.imbcloud.cn/h5/share/channel?hls=1&share_type=wx&channel_id=149037&response_type=code&scope=snsapi_login&state=2014#wechat_redirect'
+        'https://open.weixin.qq.com/connect/qrconnect?appid=wx4a36e3e1cab43cf6&redirect_uri=' +
+        location.href.split('#')[0] +
+        '&response_type=code&scope=snsapi_login&state=2014#wechat_redirect'
+      // 测试地址
+      // let url =
+      //   'https://open.weixin.qq.com/connect/qrconnect?appid=wx4a36e3e1cab43cf6&redirect_uri=https://api.imbcloud.cn/access/h5/share/channel?hls=1&share_type=wx&channel_id=149037&response_type=code&scope=snsapi_login&state=2014#wechat_redirect'
       window.location.href = url
     },
     keepAlive() {
@@ -1330,49 +1342,89 @@ export default {
         // 微信分享
         if (res) {
           wx.config({
-            debug: false,
+            debug: false, // 是否开启debug
             appId: res.appid,
             timestamp: res.timestamp,
             nonceStr: res.nonceStr,
             signature: res.signature,
-            jsApiList: ['onMenuShareTimeline', 'onMenuShareAppMessage']
+            jsApiList: [
+              // 'onMenuShareTimeline', // 分享朋友圈，即将废弃
+              // 'onMenuShareAppMessage' // 分享给朋友， 即将废弃
+              'updateAppMessageShareData', // 分享给朋友，新api
+              'updateTimelineShareData' // 分享朋友圈，新api
+            ]
           })
           wx.ready(() => {
-            console.log('微信准备')
-            // 分享到朋友圈
-            wx.onMenuShareTimeline({
-              title: this.data.wx_share_title,
+            // console.log('微信分享')
+            /**
+             * 分享到朋友圈 ========
+             *  */
+            wx.updateTimelineShareData({
+              title: this.data.wx_share_title, // 分享标题
+              link:
+                this.urlhead +
+                '/access/h5/share/channel?hls=1&share_type=wx&channel_id=' +
+                this.data.channel_id +
+                '&user_id=' +
+                this.data.visit_id, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+              imgUrl: this.data.wx_share_image ? this.data.wx_share_image : '', // 分享图标
+              success: function() {
+                // 设置成功
+                console.log('分享朋友圈链接生成成功')
+              }
+            })
+            // 原处理方式-----
+            // wx.onMenuShareTimeline({
+            //   title: this.data.wx_share_title,
+            //   desc: this.data.wx_share_msg,
+            //   link:
+            //     this.urlhead +
+            //     '/access/h5/share/channel?hls=1&share_type=wx&channel_id=' +
+            //     this.data.channel_id +
+            //     '&user_id=' +
+            //     this.data.visit_id,
+            //   imgUrl: this.data.wx_share_image,
+            //   type: '',
+            //   dataUrl: '',
+            //   success: function() {
+            //     // alert('分享成功！！')
+            //   }
+            // }),
+            /**
+             * 分享给朋友 ==============
+             *  */
+
+            wx.updateAppMessageShareData({
+              title: this.data.wx_share_title, // 分享标题
               desc: this.data.wx_share_msg,
               link:
                 this.urlhead +
                 '/access/h5/share/channel?hls=1&share_type=wx&channel_id=' +
                 this.data.channel_id +
                 '&user_id=' +
-                this.data.visit_id,
-              imgUrl: this.data.wx_share_image,
-              type: '',
-              dataUrl: '',
+                this.data.visit_id, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+              imgUrl: this.data.wx_share_image ? this.data.wx_share_image : '', // 分享图标
               success: function() {
-                // alert('分享成功！！')
+                // 设置成功
+                console.log('分享好友链接生成成功')
               }
-            }),
-              // 分享给朋友
-              wx.onMenuShareAppMessage({
-                title: this.data.wx_share_title,
-                desc: this.data.wx_share_msg,
-                link:
-                  this.urlhead +
-                  '/access/h5/share/channel?hls=1&share_type=wx&channel_id=' +
-                  this.data.channel_id +
-                  '&user_id=' +
-                  this.data.visit_id,
-                imgUrl: this.data.wx_share_image,
-                type: '',
-                dataUrl: '',
-                success: function() {
-                  // alert('分享成功！！')
-                }
-              })
+            })
+            // wx.onMenuShareAppMessage({
+            //   title: this.data.wx_share_title,
+            //   desc: this.data.wx_share_msg,
+            //   link:
+            //     this.urlhead +
+            //     '/access/h5/share/channel?hls=1&share_type=wx&channel_id=' +
+            //     this.data.channel_id +
+            //     '&user_id=' +
+            //     this.data.visit_id,
+            //   imgUrl: this.data.wx_share_image,
+            //   type: '',
+            //   dataUrl: '',
+            //   success: function() {
+            //     // alert('分享成功！！')
+            //   }
+            // })
           })
         }
       })
@@ -1538,8 +1590,9 @@ export default {
     },
     // 提交发言
     sendComments() {
-      if (this.speakContent === '') {
+      if (!this.speakContent) {
         this.$Message.error('聊天信息不能为空！')
+        return
       }
       let params = {
         visit_name: this.data.visit_name,
@@ -1566,9 +1619,11 @@ export default {
         method: 'post',
         params: params
       }).then(res => {
-        if (res.result) {
-          // this.Message.push(res.msg) 重复显示
+        if (res.result && this.data.visit_id === res.msg.visit_id) {
+          // 当前登录用户直接显示，非当前登录用户 getcomment 显示
+          this.Message.push(res.msg) // 重复显示
         }
+        // 清空数据
         this.speakContent = ''
         this.$nextTick(() => {
           let dom = document.querySelector('.scroll-wrapper')
@@ -1581,8 +1636,6 @@ export default {
           document.documentElement.scrollTop = 0
           // console.log('ios置顶')
         }
-        // 清空数据
-        this.speakContent = null
       })
     },
     // 点击发言显示窗口
@@ -1637,7 +1690,9 @@ export default {
     },
     // 倒计时计算
     timer(timeStr) {
-      let nowTime = new Date(timeStr) - new Date()
+      // 将日期格式 2017-04-28 23:59:59 换成 2017/04/28 23:59:59 ios 显示问题
+      let time = timeStr.replace(/\-/g, '/')
+      let nowTime = new Date(time) - new Date()
       let minutes = parseInt((nowTime / 1000 / 60) % 60, 10) //计算剩余的分钟
       let days = parseInt(nowTime / 1000 / 60 / 60 / 24, 10) //计算剩余的天数
       let hours = parseInt((nowTime / 1000 / 60 / 60) % 24, 10) //计算剩余的小时
@@ -1686,6 +1741,7 @@ export default {
       })
       setTimeout(() => {
         this.getData()
+        this.getComments()
       }, 15000)
     },
     // 获取回放列表
@@ -1721,11 +1777,13 @@ export default {
           if (this.historyPage == 1) {
             for (var i = 0; i < res.comments.length - 1; i++) {
               this.Message.unshift(res.comments.splice(0, 1)[0])
+              // this.Message.push(res.comments.splice(0, 1)[0])
               i--
             }
           } else {
             for (var i = 0; i < res.comments.length; i++) {
               this.Message.unshift(res.comments.splice(0, 1)[0])
+              // this.Message.push(res.comments.splice(0, 1)[0])
               i--
             }
           }
@@ -1769,7 +1827,6 @@ export default {
               })
             }
           })
-          this.getComments()
         }
       })
     },
@@ -1845,6 +1902,10 @@ export default {
 </script>
 
 <style>
+.speak-modal .ivu-modal {
+  position: relative;
+  z-index: 999;
+}
 .main-box {
   width: 100%;
   height: 100%;
@@ -2138,6 +2199,12 @@ export default {
 .tab-menu:hover {
   cursor: pointer;
 }
+.tab-menu.tab-active {
+  color: #288fee;
+}
+.tab-menu.tab-active .personNum {
+  color: #288fee;
+}
 .tab-menu.tab-active:after {
   /* color: #2d8cf0; */
   /* border-bottom: 2px solid #2d8cf0; */
@@ -2379,10 +2446,15 @@ export default {
   flex-wrap: wrap;
   height: 100%;
 }
+.scroll-wrapper::-webkit-scrollbar {
+  width: 0 !important;
+}
 .scroll-wrapper {
   padding: 6px 0px;
   flex: 1;
   overflow: auto;
+  -ms-overflow-style: none;
+  overflow: -moz-scrollbars-none;
   -webkit-overflow-scrolling: touch;
 }
 .speak-box {

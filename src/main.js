@@ -24,7 +24,8 @@ if (process.env.NODE_ENV == "development") {
   SERVER_BASE_URL = 'http://192.168.1.157:8080/imb_web/'
   // SERVER_BASE_URL = 'https://ceshi.imbcloud.cn/access/'
 } else {
-  SERVER_BASE_URL = 'https://ceshi.imbcloud.cn/access/'
+  SERVER_BASE_URL = '/access/'
+  // SERVER_BASE_URL = 'https://ceshi.imbcloud.cn/access/'
 }
 
 const fetch = options => {
