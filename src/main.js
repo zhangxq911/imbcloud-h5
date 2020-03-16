@@ -1,6 +1,7 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
+import './cube-ui'
 import App from './App'
 import router from './router'
 import iview from 'iview'
@@ -21,8 +22,9 @@ var SERVER_BASE_URL = ''; // 这个地方放公用的地址前缀
 // SERVER_BASE_URL = 'http://192.168.1.14:8080/imb_web/'
 
 if (process.env.NODE_ENV == "development") {
-  SERVER_BASE_URL = 'http://192.168.1.157:8080/imb_web/'
-  // SERVER_BASE_URL = 'https://ceshi.imbcloud.cn/access/'
+  // SERVER_BASE_URL = 'http://192.168.1.157:8080/imb_web/'
+  // SERVER_BASE_URL = 'https://api.imbcloud.cn/imb_web/'
+  SERVER_BASE_URL = 'https://api.imbcloud.cn/access/'
 } else {
   SERVER_BASE_URL = '/access/'
   // SERVER_BASE_URL = 'https://ceshi.imbcloud.cn/access/'

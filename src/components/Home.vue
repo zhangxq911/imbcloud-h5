@@ -27,7 +27,7 @@
         <!-- 直播 -->
         <div
           style="top: 0;left: 0;z-index: 1;width: 100%;height: 30vh;"
-          v-show="data.live_status === 1"
+          v-if="data.live_status === 1"
         >
           <div
             @click="off != off"
@@ -38,17 +38,50 @@
         </div>
 
         <!-- 默认回放 -->
-        <div class="video3">
-          <div v-for="(item,index) in replay" :key="item.id">
+        <div class="videoReplay" v-if="basicReplay.video_url">
+          <video
+            id="basicReplay"
+            :src="basicReplay.video_url"
+            controls="controls"
+            autoplay="autoplay"
+            muted="false"
+            x5-video-player-type="h5"
+            :poster="basicReplay.cover_url"
+            style="width: 100%; height: 100%; background: black;"
+            webkit-playsinline
+            playsinline
+            x5-playsinline
+            x-webkit-airplay="allow"
+          ></video>
+        </div>
+        <!-- <div class="video3">
+          <div v-for="(item,index) in replayList" :key="item.id">
             <div
               v-if="item.video_id === data.live_video_id && play3 === true"
               id="hlsPlay3"
               class="video4"
             ></div>
           </div>
-          <div v-for="(item,index) in replay" :key="item.id">
+          <div v-for="(item,index) in replayList" :key="item.id">
             <div v-if="index === replayIndex && play4 === true" id="hlsPlay4" class="video4"></div>
           </div>
+        </div>-->
+
+        <!-- 回放播放 -->
+        <div class="videoReplay" v-if="curReplay.video_url">
+          <button class="backBtn" v-if="live_status === 1" @click="backToLive">
+            <Icon class="backIcon" type="ios-arrow-back" />
+          </button>
+          <video
+            :src="curReplay.video_url"
+            controls="controls"
+            :poster="curReplay.cover_url"
+            style="width: 100%; height: 100%; background: black;"
+            webkit-playsinline
+            playsinline
+            x5-playsinline
+            x-webkit-airplay="allow"
+          ></video>
         </div>
 
         <!-- 封面 -->
@@ -396,9 +429,10 @@
             <div v-show="curType === 5">
               <div
                 class="item"
-                v-for="(item,index) in replay"
+                v-for="(item,index) in replayList"
                 :key="item.id"
                 @click="replayChange(index)"
+                style="float: left;"
               >
                 <div class="tip">回放</div>
                 <div class="replayIcon"></div>
@@ -765,7 +799,8 @@
             <div v-show="curType === 5">
               <div
                 class="item"
-                v-for="(item,index) in replay"
+                style="width: 200px; float: left;"
+                v-for="(item,index) in replayList"
                 :key="item.id"
                 @click="replayChange(index)"
               >
@@ -845,7 +880,11 @@
         </div>
         <div class="wechat-head">{{ data.wx_mp_name }}</div>
         <div class="wechat-img">
-          <img style="width: 160px; height: 160px;" :src="data.wx_mp_image" alt="公众号二维码" />
+          <img
+            style="width: 160px; height: 160px;"
+            :src="data.wx_mp_image ? data.wx_mp_image : 'http://imbcloud.oss-cn-hangzhou.aliyuncs.com/api_image/no2w.png'"
+            alt="公众号二维码"
+          />
         </div>
         <div v-if="isMobile" style="font-size:24; text-align: center;">长按识别二维码</div>
         <div v-else style="font-size:24; text-align: center;">扫一扫</div>
@@ -933,8 +972,18 @@ export default {
       curBar: 0,
       users: [],
       photoNum: -1,
-      screenNum: -1
+      screenNum: -1,
+      replayList: [],
+      curReplay: {
+        video_url: '',
+        cover_url: ''
+      }, // 当前播放的回放列表
       // countdown: 3
+      basicReplay: {
+        video_url: '',
+        cover_url: ''
+      },
+      player: null
     }
   },
   components: { VueQr },
@@ -1128,7 +1177,7 @@ export default {
             if (navigator.userAgent.match(/(Android)/i)) {
               // 安卓处理
               setTimeout(() => {
-                let player = new TcPlayer('hlsPlay', {
+                this.player = new TcPlayer('hlsPlay', {
                   m3u8: this.data.streams.hls_play_url,
                   // "coverpic": {"style": "cover", "src": self.data.live_image},
                   width: '100%',
@@ -1166,7 +1215,7 @@ export default {
             } else {
               // ios及其他处理
               setTimeout(() => {
-                let player = new TcPlayer('hlsPlay', {
+                this.player = new TcPlayer('hlsPlay', {
                   m3u8: this.data.streams.hls_play_url,
                   // "coverpic": {"style": "cover", "src": self.data.live_image},
                   width: '100%',
@@ -1250,6 +1299,10 @@ export default {
     })
   },
   methods: {
+    backToLive() {
+      this.curReplay.video_url = ''
+      // this.player.play()
+    },
     getQueryVariable(variable) {
       var query = window.location.search.substring(1)
       var vars = query.split('&')
@@ -1459,58 +1512,9 @@ export default {
     },
     // 回放选择
     replayChange(index) {
-      this.zhibo = false
-      this.backGround = false
+      this.curReplay = JSON.parse(JSON.stringify(this.replayList[index]))
       this.Logo = false
-      this.play3 = false
-      this.play4 = true
-      $('.video3')
-        .eq(0)
-        .css('background', 'rgba(0,0,0,0.75)')
-      if (this.replayIndex == index) {
-      } else {
-        // this.data.live_video_id = this.replay[index].video_id
-        this.replayIndex = index
-        setTimeout(() => {
-          let player4 = new TcPlayer('hlsPlay4', {
-            m3u8: this.replay[index].video_url,
-            // "coverpic": {"style": "cover", "src": this.replay[index].cover_url},
-            live: false,
-            width: '100%',
-            height: '100%',
-            autoplay: false,
-            volume: 0.5,
-            controls: 'system',
-            'x-webkit-airplay': 'true',
-            'x5-playsinline': 'true',
-            playsinline: 'true',
-            'webkit-playsinline': 'true',
-            listener: msg => {
-              let type = msg.type
-              if (type == 'error') {
-                //播放错误了，重连
-                setTimeout(function() {
-                  // player4.load();//进行重连
-                }, 5000)
-              } else if (type == 'ended') {
-                //结束了，重新刷新页面，跳转到结束直播页面
-                window.location.reload() //更新页面
-              } else if (type == 'pause') {
-                //暂停，没做处理
-              } else if (type == 'play') {
-              }
-            }
-          })
-          $('#hlsPlay4 > div > video').attr('x-webkit-airplay', 'true')
-          $('#hlsPlay4 > div > video').attr('x5-playsinline', 'true')
-          $('#hlsPlay4 > div > video').attr('webkit-playsinline', 'true')
-          $('#hlsPlay4 > div > video').attr('playsinline', 'true')
-          $('#hlsPlay4 > div > video').attr(
-            'poster',
-            this.replay[index].cover_url
-          )
-        }, 100)
-      }
+      // this.player.pause()
     },
     // 处理榜单前三位添加样式
     listd(i) {
@@ -1838,13 +1842,7 @@ export default {
     },
     // 获取默认回放
     getReplay() {
-      this.backGround = false
       this.Logo = false
-      this.play4 = false
-      this.play3 = true
-      $('.video3')
-        .eq(0)
-        .attr('background', 'rgbba(0,0,0,0.75)')
       let params = {
         channel_id: this.data.channel_id,
         video_id: this.data.live_video_id
@@ -1855,40 +1853,66 @@ export default {
         params: params
       }).then(res => {
         if (res) {
-          let player3 = new TcPlayer('hlsPlay3', {
-            m3u8: res.video_url,
-            // "coverpic": {"style": "cover", "src": res.cover_url},
-            width: '100%',
-            height: '100%',
-            live: false,
-            autoplay: false,
-            controls: 'system',
-            'x-webkit-airplay': 'true',
-            'x5-playsinline': 'true',
-            playsinline: 'true',
-            'webkit-playsinline': 'true',
-            listener: msg => {
-              let type = msg.type
-              if (type == 'error') {
-                //播放错误了，重连
-                setTimeout(() => {
-                  player3.load() //进行重连
-                }, 5000)
-              } else if (type == 'ended') {
-                //结束了，重新刷新页面，跳转到结束直播页面
-                window.location.reload() //更新页面
-              } else if (type == 'pause') {
-                //暂停，没做处理
-              } else if (type == 'play') {
-              }
-            }
+          this.basicReplay = res
+          // ios 微信处理
+          document.addEventListener(
+            'WeixinJSBridgeReady',
+            function() {
+              console.log('wx WeixinJSBridgeReady')
+              document.getElementById('basicReplay').play()
+            },
+            false
+          )
+          // 备选方案 ios
+          wx.ready(() => {
+            console.log('ios 备选方案')
+            document.getElementById('basicReplay').play()
           })
-          $('#hlsPlay3 > div > video').attr('x-webkit-airplay', 'true')
-          $('#hlsPlay3 > div > video').attr('x5-playsinline', 'true')
-          $('#hlsPlay3 > div > video').attr('webkit-playsinline', 'true')
-          $('#hlsPlay3 > div > video').attr('playsinline', 'true')
-          $('#hlsPlay3 > div > video').attr('poster', res.cover_url)
+          // android 微信处理
+          document.addEventListener(
+            'touchstart',
+            function() {
+              console.log('wx touchstart')
+              document.getElementById('basicReplay').play()
+            },
+            false
+          )
         }
+        // if (res) {
+        //   let player3 = new TcPlayer('hlsPlay3', {
+        //     m3u8: res.video_url,
+        //     // "coverpic": {"style": "cover", "src": res.cover_url},
+        //     width: '100%',
+        //     height: '100%',
+        //     live: false,
+        //     autoplay: false,
+        //     controls: 'system',
+        //     'x-webkit-airplay': 'true',
+        //     'x5-playsinline': 'true',
+        //     playsinline: 'true',
+        //     'webkit-playsinline': 'true',
+        //     listener: msg => {
+        //       let type = msg.type
+        //       if (type == 'error') {
+        //         //播放错误了，重连
+        //         setTimeout(() => {
+        //           player3.load() //进行重连
+        //         }, 5000)
+        //       } else if (type == 'ended') {
+        //         //结束了，重新刷新页面，跳转到结束直播页面
+        //         window.location.reload() //更新页面
+        //       } else if (type == 'pause') {
+        //         //暂停，没做处理
+        //       } else if (type == 'play') {
+        //       }
+        //     }
+        //   })
+        //   $('#hlsPlay3 > div > video').attr('x-webkit-airplay', 'true')
+        //   $('#hlsPlay3 > div > video').attr('x5-playsinline', 'true')
+        //   $('#hlsPlay3 > div > video').attr('webkit-playsinline', 'true')
+        //   $('#hlsPlay3 > div > video').attr('playsinline', 'true')
+        //   $('#hlsPlay3 > div > video').attr('poster', res.cover_url)
+        // }
       })
     }
   },
@@ -2105,6 +2129,29 @@ export default {
   bottom: 0;
   /*background: url(../assets/login_bg.png) 100% 100% no-repeat;*/
   background-size: 100% 100%;
+}
+.videoReplay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  z-index: 3;
+  /* display: none; */
+}
+.videoReplay .backBtn {
+  position: absolute;
+  z-index: 999;
+  left: 0px;
+  top: 6px;
+  background: none;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+}
+.videoReplay .backBtn {
+  font-size: 24px;
+  color: #fff;
+  text-shadow: 0 0 4px #000;
 }
 .video4 {
   position: absolute;
